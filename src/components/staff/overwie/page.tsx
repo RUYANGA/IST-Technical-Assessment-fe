@@ -398,7 +398,7 @@ export default function StaffOverviewPage() {
                                 <Eye className="w-4 h-4 text-slate-500" /> View
                               </Link>
                               <Link
-                                href={`/dashboards/staff/requests/${r.id}/edit`}
+                                href={`/dashboards/staff/edit/${r.id}`}
                                 onClick={() => {
                                   setOpenMenuId(null)
                                   setMenuAnchor(null)
