@@ -1,9 +1,10 @@
 
+import ApprovalOverviewPage from '@/components/approval/overview/page'
 import React from 'react'
 
 function AdminDashbaord() {
   return (
-    <div>AdminDashbaord</div>
+    <ApprovalOverviewPage/>
   )
 }
 
