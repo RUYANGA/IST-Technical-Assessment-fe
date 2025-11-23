@@ -62,33 +62,11 @@ export default function SingleRequest({
 
   const { request, loading, error } = useRequestDetails(id, svc)
 
-  
-  // normalize status coming from different API shapes
-  const normalizedStatus = useMemo(() => {
-    if (!request) return undefined
-    // possible fields: status, state, approval_status
-    const raw = String((request as Record<string, unknown>)["status"]
-      ?? (request as Record<string, unknown>)["state"]
-      ?? (request as Record<string, unknown>)["approval_status"]
-      ?? "").trim()
-
-    const up = raw.toUpperCase()
-    if (up === "APPROVED" || up === "APPROVE" || up === "APPROVED_BY_SYSTEM") return "APPROVED"
-    if (up === "REJECTED" || up === "DECLINED") return "REJECTED"
-
-    // fallback: if approval counts present, compute from them
-    const cur = Number((request as Record<string, unknown>)["current_approval_level"] ?? NaN)
-    const required = Number((request as Record<string, unknown>)["required_approval_levels"] ?? NaN)
-    if (Number.isFinite(cur) && Number.isFinite(required) && cur >= required) return "APPROVED"
-
-    return "PENDING"
-  }, [request])
-
   // provide a typed object for MetaGrid so required fields (like id) stay present
   const requestForMeta = useMemo<RequestItem | undefined>(() => {
     if (!request) return undefined
-    return ({ ...(request as RequestItem), status: normalizedStatus } as RequestItem)
-  }, [request, normalizedStatus])
+    return ({ ...(request as RequestItem), status: request.status } as RequestItem)
+  }, [request])
 
   // show full-page skeleton while fetching
   if (loading) {
@@ -144,8 +122,14 @@ export default function SingleRequest({
       {request && (
         <section className="bg-white border rounded shadow-sm p-6 space-y-6">
           <header>
-            <h2 className="text-lg font-semibold text-slate-800">{request.title ?? "Untitled request"}</h2>
-            <p className="text-sm text-slate-500 mt-1">{request.description ?? "No description"}</p>
+            <div className="mb-2">
+              <span className="text-xs text-slate-400 font-semibold mr-2">Title:</span>
+              <h2 className="text-lg font-semibold text-slate-800 inline">{request.title ?? "Untitled request"}</h2>
+            </div>
+            <div>
+              <span className="text-xs text-slate-400 font-semibold mr-2">Description:</span>
+              <span className="text-sm text-slate-500">{request.description ?? "No description"}</span>
+            </div>
           </header>
 
           {requestForMeta && <MetaGrid request={requestForMeta} />}
