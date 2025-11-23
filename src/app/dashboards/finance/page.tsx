@@ -1,9 +1,9 @@
 
-import React from 'react'
+import FinanceOverviewPage from '@/components/finance/FinanceOverviewPage'
 
 function AdminDashbaord() {
   return (
-    <div>AdminDashbaord</div>
+    <FinanceOverviewPage/>
   )
 }
 
