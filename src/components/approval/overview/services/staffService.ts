@@ -92,6 +92,34 @@ export function createStaffService(client: AxiosInstance = api) {
       }
     },
 
+    // fetch raw rejected-requests payload (returns ApprovalEntry[] or object containing rejected_requests)
+    async fetchMineRejectedEntries(token?: string): Promise<ApprovalEntry[]> {
+      try {
+        const headers = token ? { Authorization: `Bearer ${token}` } : {}
+        const res = await client.get("/approvals/mine/rejected/", { headers })
+        const data: unknown = res.data ?? {}
+
+        // If API returns array directly
+        if (Array.isArray(data)) return data as ApprovalEntry[]
+
+        // If API returns an object e.g. { rejected_requests: [...] }
+        if (data && typeof data === "object") {
+          const obj = data as Record<string, unknown>
+          const candidates = ["rejected_requests", "rejected", "results", "data", "items"]
+          for (const k of candidates) {
+            const val = obj[k]
+            if (Array.isArray(val)) return val as ApprovalEntry[]
+          }
+        }
+
+        return []
+      } catch (err) {
+        console.error("fetchMineRejectedEntries /approvals/mine/rejected/ error:", err)
+        toast.error("Failed to load rejected approvals")
+        return []
+      }
+    },
+
     // fetch stats for all requests (not restricted to "mine")
     async fetchStats(token?: string): Promise<StaffStats | null> {
       try {

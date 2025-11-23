@@ -19,7 +19,7 @@ import {
 } from "lucide-react"
 
 export default function ApprovalOverviewPage() {
-  const { loading, recent, stats, refresh, mine } = useStaffOverview()
+  const { loading, recent, stats, refresh, mine, rejectedMine } = useStaffOverview()
 
   const tableRef = useRef<HTMLDivElement | null>(null)
   const router = useRouter()
@@ -245,9 +245,16 @@ export default function ApprovalOverviewPage() {
           <div className="flex-1">
             <div className="text-sm md:text-base text-slate-500">My Rejected</div>
             <div className="text-2xl md:text-3xl font-semibold text-rose-600">
-              {loading ? "—" : String(Array.isArray(mine) ? mine.filter((x) => String(x?.status ?? "").toUpperCase() === "REJECTED").length : stats?.rejected ?? 0)}
+              {loading
+                ? "—"
+                : String(
+                    Array.isArray(rejectedMine)
+                      ? rejectedMine.length
+                      : Array.isArray(mine)
+                      ? mine.filter((x) => String(x?.status ?? "").toUpperCase() === "REJECTED").length
+                      : stats?.rejected ?? 0
+                  )}
             </div>
-          
           </div>
         </div>
 
