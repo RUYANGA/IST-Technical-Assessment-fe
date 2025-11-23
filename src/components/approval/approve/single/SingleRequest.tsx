@@ -22,7 +22,6 @@ function formatFrw(v: unknown) {
   return `Frw ${Math.round(n).toLocaleString()}`
 }
 
-
 export default function SingleRequest({
   id: propId,
   service,
@@ -31,14 +30,10 @@ export default function SingleRequest({
   service?: ReturnType<typeof createStaffService>
 }) {
   const svc = useMemo(() => service ?? createStaffService(), [service])
-
-  // start with propId when provided, otherwise null until effect runs on client
   const [id, setId] = useState<string | null>(() => (propId ?? null))
 
   useEffect(() => {
-    // schedule id updates asynchronously to avoid synchronous setState inside effect
     if (typeof window === "undefined") return
-
     let mounted = true
     const deriveId = (): string | null => {
       if (propId) return propId
@@ -47,13 +42,11 @@ export default function SingleRequest({
       if (last && !isNaN(Number(last))) return last
       return new URLSearchParams(window.location.search).get("id")
     }
-
     const candidate = deriveId()
     const timer = window.setTimeout(() => {
       if (!mounted) return
       setId(candidate ?? null)
     }, 0)
-
     return () => {
       mounted = false
       window.clearTimeout(timer)
@@ -62,35 +55,12 @@ export default function SingleRequest({
 
   const { request, loading, error } = useRequestDetails(id, svc)
 
-  
-  // normalize status coming from different API shapes
-  const normalizedStatus = useMemo(() => {
-    if (!request) return undefined
-    // possible fields: status, state, approval_status
-    const raw = String((request as Record<string, unknown>)["status"]
-      ?? (request as Record<string, unknown>)["state"]
-      ?? (request as Record<string, unknown>)["approval_status"]
-      ?? "").trim()
-
-    const up = raw.toUpperCase()
-    if (up === "APPROVED" || up === "APPROVE" || up === "APPROVED_BY_SYSTEM") return "APPROVED"
-    if (up === "REJECTED" || up === "DECLINED") return "REJECTED"
-
-    // fallback: if approval counts present, compute from them
-    const cur = Number((request as Record<string, unknown>)["current_approval_level"] ?? NaN)
-    const required = Number((request as Record<string, unknown>)["required_approval_levels"] ?? NaN)
-    if (Number.isFinite(cur) && Number.isFinite(required) && cur >= required) return "APPROVED"
-
-    return "PENDING"
-  }, [request])
-
-  // provide a typed object for MetaGrid so required fields (like id) stay present
+  // Use the real status from the API response
   const requestForMeta = useMemo<RequestItem | undefined>(() => {
     if (!request) return undefined
-    return ({ ...(request as RequestItem), status: normalizedStatus } as RequestItem)
-  }, [request, normalizedStatus])
+    return ({ ...(request as RequestItem), status: request.status } as RequestItem)
+  }, [request])
 
-  // show full-page skeleton while fetching
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto p-6">
@@ -112,7 +82,6 @@ export default function SingleRequest({
     )
   }
 
-  // compute items and totals (works with string/number shapes)
   const items = Array.isArray(request?.items) ? (request.items as unknown[]).map((it) => {
     const r = it && typeof it === "object" ? (it as Record<string, unknown>) : {}
     return {
@@ -131,8 +100,6 @@ export default function SingleRequest({
   const totalAmountRaw = (request && ("total_amount" in request) ? (request as Record<string, unknown>)["total_amount"] : undefined)
   const totalToShow = Number.isFinite(safeNum(totalAmountRaw)) ? safeNum(totalAmountRaw) : computedTotal
 
- 
-
   return (
     <div className="max-w-4xl mx-auto p-6">
       <RequestHeader request={request} />
@@ -143,9 +110,16 @@ export default function SingleRequest({
 
       {request && (
         <section className="bg-white border rounded shadow-sm p-6 space-y-6">
-          <header>
-            <h2 className="text-lg font-semibold text-slate-800">{request.title ?? "Untitled request"}</h2>
-            <p className="text-sm text-slate-500 mt-1">{request.description ?? "No description"}</p>
+          <header className="mb-4">
+           <div className="mb-2">
+              <span className="text-xs text-slate-400 font-semibold mr-2">Title:</span>
+              <h2 className="text-lg font-semibold text-slate-800 inline">{request.title ?? "Untitled request"}</h2>
+            </div>
+            <div>
+              <span className="text-xs text-slate-400 font-semibold mr-2">Description:</span>
+              <span className="text-sm text-slate-500">{request.description ?? "No description"}</span>
+            </div>
+            
           </header>
 
           {requestForMeta && <MetaGrid request={requestForMeta} />}
@@ -190,7 +164,6 @@ export default function SingleRequest({
           </div>
 
           <div className="text-sm text-slate-500">
-           
             {request.approved_by_user && (
               <div>
                 Approved by: <span className="text-slate-700 font-medium">{request.approved_by_user.full_name ?? request.approved_by_user.name}</span>

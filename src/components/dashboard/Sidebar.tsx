@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import api, { setAuthToken } from "@/lib/api"
 import type { LucideIcon } from "lucide-react"
-import { Users, ClipboardList, BarChart2, ShoppingCart, FileText, FilePlus, UploadCloud, FileCheck, Archive } from "lucide-react"
+import { Users, ClipboardList, BarChart2, ShoppingCart, FileText, FilePlus, FileCheck, Archive } from "lucide-react"
 import { LogoutButton } from "../logout"
 
 type Role = "finance" | "approver1" |"approver2" |"staff"
@@ -60,8 +60,7 @@ const roleNav: Record<Role, Array<{ href: string; label: string; icon: LucideIco
      { href: "/dashboards/staff", label: "Overview", icon: BarChart2 },
     { href: "/dashboards/staff/new-request", label: "Create Request", icon: FilePlus },
     { href: "/dashboards/staff/requests", label: "My Requests", icon: ClipboardList },
-    { href: "/dashboards/staff/receipts", label: "Submit Receipt", icon: UploadCloud },
-    { href: "/dashboards/staff/oders", label: "Purchase Orders", icon: ShoppingCart },
+    
     { href: "/dashboards/staff/history", label: "Request History", icon: FileText },
   ],
 }

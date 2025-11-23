@@ -251,7 +251,7 @@ export default function ApprovalOverviewPage() {
           <div className="flex-1">
             <div className="text-sm md:text-base text-slate-500">Pending</div>
             <div className="text-2xl md:text-3xl font-semibold text-amber-600">
-              {loading ? "—" : String(stats?.pending ?? pendingList.length)}
+              {loading ? "—" : String(recent?.length)}
             </div>
           </div>
         </div>
