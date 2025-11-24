@@ -136,7 +136,7 @@ export function FinanceTable({
                         <Upload className="w-4 h-4 text-sky-500" /> Upload Receipt/Invoice
                       </Link>
                       <Link
-                        href={`/finance/requests/${r.id}/documents`}
+                        href={`/dashboards/finance/document/view-receipt/${r.id}`}
                         onClick={() => {
                           setOpenMenuId(null)
                           setMenuAnchor(null)

@@ -56,7 +56,10 @@ export function LoginForm({
       if (data.role == "finance") {
         router.push("/dashboards/finance")
         toast.success("Login successfuly.")
-      }else if (data.role == "approver1" || data.role == "approver2") {
+      }else if (data.role == "approver1") {
+        router.push("/dashboards/approval")
+        toast.success("Login successfuly.")
+      }else if( data.role == "approver2"){
         router.push("/dashboards/approval")
         toast.success("Login successfuly.")
       }else if(data.role == "staff"){

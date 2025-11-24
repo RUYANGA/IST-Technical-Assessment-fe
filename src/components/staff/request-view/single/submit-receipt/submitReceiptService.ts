@@ -13,12 +13,12 @@ export type ReceiptResult = {
 
 export async function submitReceipt(
   requestId: number | string,
-  file: File,
+  fileUrl: string,
   vendor: string,
   note?: string
 ): Promise<ReceiptResult> {
   const formData = new FormData()
-  formData.append('file', file)
+  formData.append('file_url', fileUrl) // <-- match your Django model field
   formData.append('vendor', vendor)
   if (note) formData.append('note', note)
 
@@ -35,17 +35,23 @@ export async function submitReceipt(
     toast.success('Receipt submitted successfully!')
     return res.data
   } catch (error) {
+    // Use unknown type and type guard
     if (
-      typeof error === 'object' &&
+      typeof error === "object" &&
       error !== null &&
-      'response' in error &&
-      typeof (error as { response?: unknown }).response === 'object' &&
-      (error as { response?: { data?: { detail?: string } } }).response?.data?.detail
+      "response" in error &&
+      typeof (error as { response?: unknown }).response === "object"
     ) {
-      toast.error((error as { response: { data: { detail: string } } }).response.data.detail)
+      const response = (error as { response?: { data?: unknown } }).response;
+      const data = response?.data as { error?: string; detail?: string } | string | undefined;
+      const msg =
+        typeof data === "string"
+          ? data
+          : data?.error || data?.detail || "Receipt submission failed";
+      toast.error(msg);
     } else {
-      toast.error('Failed to submit receipt')
+      toast.error("Receipt submission failed");
     }
-    throw error
+    throw error;
   }
 }

@@ -1,29 +1,36 @@
 import React from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
+import { UploadButton } from "@uploadthing/react"
+import type { OurFileRouter } from "@/app/api/uploadthing/core"
+import toast from "react-hot-toast";
 
-interface SubmitReceiptFormProps {
-  loading: boolean
-  error: string | null
-  result: Record<string, unknown> | null
-  vendor: string
-  note: string
-  setFile: (file: File | null) => void
-  setVendor: (vendor: string) => void
-  setNote: (note: string) => void
-  handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void
-}
+type UploadThingFile = {
+  ufsUrl?: string;
+  message?: string;
+};
 
 function SubmitReceiptForm({
   loading,
-  error,
   vendor,
   note,
-  setFile,
+  fileUrl,
+  setFileUrl,
   setVendor,
   setNote,
   handleSubmit,
-}: SubmitReceiptFormProps) {
+}: {
+  loading: boolean
+  error: string | null
+  result?: Record<string, unknown> | null
+  vendor: string
+  note: string
+  fileUrl: string | null
+  setFileUrl: (url: string | null) => void
+  setVendor: (vendor: string) => void
+  setNote: (note: string) => void
+  handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void
+}) {
   const params = useParams()
   const id = typeof params?.id === "string" || typeof params?.id === "number" ? params.id : ""
 
@@ -43,24 +50,26 @@ function SubmitReceiptForm({
         </Link>
       </div>
       <div>
-        <label htmlFor="receipt-file" className="block mb-2 font-medium text-slate-700">
-          Receipt File <span className="text-red-500">*</span>
-        </label>
-        <div className="relative">
-          <input
-            id="receipt-file"
-            type="file"
-            accept="application/pdf"
-            onChange={e => setFile(e.target.files?.[0] || null)}
-            required
-            className="block w-full border border-slate-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100"
-            title="Upload receipt PDF"
-          />
-          <span className="absolute right-3 top-2 text-slate-400 pointer-events-none">
-            
-          </span>
-        </div>
-        <p className="text-xs text-slate-500 mt-1">Only PDF files are accepted. Max size 5MB.</p>
+        
+        <UploadButton<OurFileRouter, "imageUploader">
+          endpoint="imageUploader"
+          onClientUploadComplete={res => {
+            const file = res[0] as UploadThingFile;
+            if (file.message) {
+              toast.success(file.message);
+            }
+            if (file.ufsUrl) {
+              setFileUrl(file.ufsUrl);
+            }
+          }}
+          onUploadError={err => {
+             toast.success(err.message);
+          }}
+        />
+        {fileUrl && (
+          <p className="text-xs text-green-600 mt-2">File uploaded! Ready to submit.</p>
+        )}
+       
       </div>
       <div>
         <label htmlFor="vendor-name" className="block mb-2 font-medium text-slate-700">
@@ -91,7 +100,7 @@ function SubmitReceiptForm({
       </div>
       <button
         type="submit"
-        disabled={loading}
+        disabled={loading || !fileUrl}
         className="w-full bg-sky-600 text-white px-4 py-2 rounded font-semibold hover:bg-sky-700 transition disabled:opacity-50"
       >
         {loading ? (
@@ -103,11 +112,6 @@ function SubmitReceiptForm({
           "Submit Receipt"
         )}
       </button>
-      {error && (
-        <div className="text-red-600 mt-2 border border-red-200 bg-red-50 rounded px-3 py-2">
-          {error}
-        </div>
-      )}
     </form>
   )
 }
