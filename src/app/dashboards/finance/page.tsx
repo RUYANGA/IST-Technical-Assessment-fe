@@ -1,5 +1,5 @@
 
-import FinanceOverviewPage from '@/components/finance/FinanceOverviewPage'
+import FinanceOverviewPage from '@/components/finance/overview/FinanceOverviewPage'
 
 function AdminDashbaord() {
   return (

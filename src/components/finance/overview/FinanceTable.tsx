@@ -116,7 +116,7 @@ export function FinanceTable({
                   >
                     <div className="py-1">
                       <Link
-                        href={`/finance/requests/${r.id}`}
+                        href={`/dashboards/finance/${r.id}`}
                         onClick={() => {
                           setOpenMenuId(null)
                           setMenuAnchor(null)
@@ -126,7 +126,7 @@ export function FinanceTable({
                         <Eye className="w-4 h-4 text-slate-500" /> View
                       </Link>
                       <Link
-                        href={`/finance/requests/${r.id}/upload`}
+                        href={`/dashboards/finance/document/${r.id}`}
                         onClick={() => {
                           setOpenMenuId(null)
                           setMenuAnchor(null)
