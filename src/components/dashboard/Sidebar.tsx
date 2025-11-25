@@ -28,8 +28,7 @@ const roleNav: Record<Role, Array<{ href: string; label: string; icon: LucideIco
   finance: [
     { href: "/dashboards/finance", label: "Overview", icon: BarChart2 },
     { href: "/dashboards/finance/requests", label: "Requests", icon: ClipboardList },
-    { href: "/dashboards/finance/Receipt", label: "Receipts", icon: FileText },
-    { href: "/dashboards/finance/purchase-orders", label: "Purchase Orders", icon: ShoppingCart },
+    { href: "/dashboards/finance/order", label: "Purchase Orders", icon: ShoppingCart },
   ],
 
   // approver1 and approver2 share the same approval workflow navigation

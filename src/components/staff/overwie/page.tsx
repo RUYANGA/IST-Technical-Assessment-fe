@@ -21,6 +21,7 @@ import {
   XCircle,
 } from "lucide-react"
 import { createPortal } from "react-dom"
+import { DeleteButton } from "@/components/deleteDialoge"
 
 export default function StaffOverviewPage() {
   const { loading, recent, stats, refresh, deleteRequest } = useStaffOverview()
@@ -129,8 +130,9 @@ export default function StaffOverviewPage() {
     return () => document.removeEventListener("mousedown", onDocClick)
   }, [])
 
-  async function handleDelete(id: number | string) {
-    if (!confirm("Delete this request? This action cannot be undone.")) return
+ 
+  // delete flow used by ConfirmDialog / DeleteButton (no inline confirm)
+  async function deleteNow(id: number | string) {
     setDeletingId(id)
     setOpenMenuId(null)
     const ok = await deleteRequest(id)
@@ -452,18 +454,14 @@ export default function StaffOverviewPage() {
                                   >
                                     <Edit2 className="w-4 h-4 text-slate-500" /> Edit
                                   </Link>
-                                  <button
-                                    onClick={() => {
-                                      setOpenMenuId(null)
-                                      setMenuAnchor(null)
-                                      handleDelete(r.id)
-                                    }}
+                                  <DeleteButton
                                     disabled={deletingId === r.id}
-                                    className="w-full flex items-center gap-2 text-left px-3 py-2 text-sm text-rose-600 hover:bg-slate-50 disabled:opacity-50"
-                                  >
-                                    <Trash2 className="w-4 h-4 text-rose-500" />
-                                    {deletingId === r.id ? "Deleting..." : "Delete"}
-                                  </button>
+                                    title={`Are you sure you want to delete this?`}
+                                    description="This will permanently remove the request and its related data. This action cannot be undone."
+                                    handleDelete={async () => {
+                                      await deleteNow(r.id)
+                                    }}
+                                  />
                                 </>
                               )}
                             </div>
