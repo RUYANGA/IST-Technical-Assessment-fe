@@ -17,10 +17,72 @@ export default function RequestsList({ items, loading, onDelete, onOpen }: Props
     return <div className="space-y-2"><div className="h-8 bg-slate-100 rounded" /><div className="h-8 bg-slate-100 rounded" /></div>
   }
   if (!items.length) return <div className="text-sm text-slate-500">No requests yet.</div>
-
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm table-auto">
+    <>
+      {/* Mobile stacked cards */}
+      <div className="md:hidden space-y-3">
+        {items.map((r) => (
+          <div key={r.id} className="bg-white border rounded-lg p-4">
+            <div className="flex items-start justify-between">
+              <div className="min-w-0">
+                <div className="font-medium text-slate-800 truncate">{r.title}</div>
+                {r.description && <div className="text-xs text-slate-500 mt-1 line-clamp-2">{r.description}</div>}
+                <div className="mt-2 flex items-center gap-3 text-xs text-slate-500">
+                  <span>Status: <strong className="text-slate-900">{r.status ?? "—"}</strong></span>
+                  <span>Amount: <strong className="text-slate-900">{(() => {
+                    const safeNum = (v: unknown) => {
+                      if (v == null || v === "") return NaN
+                      if (typeof v === "number") return Number.isFinite(v) ? v : NaN
+                      if (typeof v === "string") {
+                        const n = Number(String(v).replace(/,/g, "").trim())
+                        return Number.isFinite(n) ? n : NaN
+                      }
+                      return NaN
+                    }
+                    const a = safeNum((r as unknown as Record<string, unknown>).amount ?? (r as unknown as Record<string, unknown>).total_amount)
+                    let amt: number | null = null
+                    if (Number.isFinite(a)) amt = a
+                    else if (Array.isArray(r.items) && r.items.length) {
+                      amt = r.items.reduce((s, it) => {
+                        const q = safeNum((it as unknown as Record<string, unknown>).quantity) || 0
+                        const up = safeNum((it as unknown as Record<string, unknown>).unit_price) || 0
+                        return s + q * up
+                      }, 0)
+                    }
+                    if (!Number.isFinite(amt ?? NaN)) return "—"
+                    return `Frw ${Math.round(amt!).toLocaleString()}`
+                  })()}</strong></span>
+                </div>
+                <div className="text-xs text-slate-500 mt-2">{r.created_at ? new Date(r.created_at).toLocaleDateString() : "—"}</div>
+              </div>
+              <div className="ml-3 flex-shrink-0 flex flex-col items-end gap-2">
+                <Link href={`/dashboards/staff/requests/${r.id}`} className="text-sm text-sky-600 hover:underline">View</Link>
+                {r.status !== "APPROVED" && (
+                  <button
+                    onClick={async () => {
+                      if (!confirm("Delete this request? This action cannot be undone.")) return
+                      setDeletingId(r.id)
+                      try {
+                        await onDelete(r.id)
+                      } finally {
+                        setDeletingId(null)
+                      }
+                    }}
+                    disabled={deletingId === r.id}
+                    className="text-sm text-rose-600"
+                  >
+                    Delete
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop/table view */}
+      <div className="hidden md:block overflow-x-auto">
+        <table className="w-full text-sm table-auto">
         <thead>
           <tr className="text-left text-slate-500 border-b">
             <th className="py-3 px-4 min-w-[38%]">Title</th>

@@ -89,6 +89,22 @@ export default function Header({
     ? "FINANCE"
     : String(roleFromServer ?? "").toUpperCase()
 
+  // Short title for small screens: strip extra parenthetical/annotations
+  const shortTitle = (() => {
+    const src = title ?? (loading ? "" : computedTitle) ?? ""
+    if (!src) return ""
+    // prefer the segment before any punctuation like ( or : or -
+    let base = src.split(/[\(\:\-–—]/)[0].trim()
+    // if it contains the word 'Dashboard' try to return a compact form
+    if (/dashboard/i.test(base)) {
+      const parts = base.split(/\s+/)
+      // e.g. "Finance Dashboard" -> "Finance"
+      if (parts.length > 1) return parts[0]
+    }
+    if (base.length > 20) return base.slice(0, 20).trim() + "..."
+    return base
+  })()
+
   return (
     <header className="flex items-center justify-between px-4 md:px-6 py-3 bg-white border-b sticky top-0 z-20 transition-all md:ml-72">
       <div className="flex items-center gap-4">
@@ -100,7 +116,12 @@ export default function Header({
 
         <div>
           <h1 className="text-lg font-semibold text-slate-900">
-            {title ?? (loading ? "" : computedTitle)}
+            <span className="hidden sm:inline" title={title ?? (loading ? "" : computedTitle)} aria-label={title ?? (loading ? "" : computedTitle)}>
+              {title ?? (loading ? "" : computedTitle)}
+            </span>
+            <span className="sm:hidden" title={title ?? (loading ? "" : computedTitle)} aria-label={title ?? (loading ? "" : computedTitle)}>
+              {shortTitle}
+            </span>
           </h1>
           <p className="text-sm text-slate-500 hidden sm:block">
             {loading ? "" : computedDescription}
