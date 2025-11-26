@@ -36,13 +36,11 @@ const roleNav: Record<Role, Array<{ href: string; label: string; icon: LucideIco
      { href: "/dashboards/approval", label: "Overview", icon: BarChart2 },
     { href: "/dashboards/approval/pending", label: "Pending Requests", icon: ClipboardList },
     { href: "/dashboards/approval/my-approvals", label: "My Approvals", icon: Users },
-    { href: "/dashboards/approval/po", label: "Purchase Orders", icon: ShoppingCart },
   ],
   approver2: [
     { href: "/dashboards/approval", label: "Overview", icon: BarChart2 },
     { href: "/dashboards/approval/pending", label: "Pending Requests", icon: ClipboardList },
     { href: "/dashboards/approval/my-approvals", label: "My Approvals", icon: Users },
-    { href: "/dashboards/approval/po", label: "Purchase Orders", icon: ShoppingCart },
   ],
 
   // staff: create & track purchase requests, submit receipts
@@ -51,7 +49,6 @@ const roleNav: Record<Role, Array<{ href: string; label: string; icon: LucideIco
     { href: "/dashboards/staff/new-request", label: "Create Request", icon: FilePlus },
     { href: "/dashboards/staff/requests", label: "My Requests", icon: ClipboardList },
     
-    { href: "/dashboards/staff/history", label: "Request History", icon: FileText },
   ],
 }
 
