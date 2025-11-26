@@ -1,36 +1,74 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MedLink — Frontend (Next.js)
 
-## Getting Started
+Professional frontend for MedLink: a lightweight purchase-request, approval and finance management UI.  
+Built with Next.js, React, TypeScript and Tailwind CSS. Integrates with a REST API for authentication, approvals and purchase order management.
 
-First, run the development server:
+## Features
+- Token-based authentication and session persistence.
+- Role-aware interfaces:
+  - Finance: purchase order listing and PO detail (view/delete).
+  - Staff: create and manage purchase requests.
+  - Approver (single or two-level): review, approve and reject requests.
+- Robust approval data handling across varying backend response shapes:
+  - Supports `/approvals/mine/` and `/approvals/mine/rejected/`.
+- Centralized API client that persists tokens and injects Authorization header.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Repository highlights
+- `src/lib/api.ts` — axios client and `setAuthToken` helper.
+- `src/components/login-form.tsx` — login UI and authentication flow.
+- `src/components/finance/oder/viewSingleOrder.tsx` — PO detail view (includes back/delete controls).
+- `src/components/approval/overview/services/staffService.ts` — approval/request fetchers and normalizers.
+- `src/components/approval/approve/single/hooks/useRequestDetails.ts` — resilient hook to resolve request details from multiple endpoints.
+
+## Prerequisites
+- Node.js 18+ (LTS recommended)
+- pnpm / npm / yarn
+
+## Environment
+Create `.env.local` at the frontend root:
+
+```dotenv
+NEXT_PUBLIC_API_URL=https://your-backend.example.com
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Set the exact backend base URL (include `/api` if your backend prefixes endpoints).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Development
+Install dependencies and run the dev server:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+pnpm install     # or npm install / yarn
+pnpm dev
+# Open http://localhost:3000
+```
 
-## Learn More
+Build and start production:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+pnpm build
+pnpm start
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## API expectations
+- Token endpoint (example): `/auth/token/` or `/api/auth/token/` — confirm with backend.
+- Login payload must match backend schema (e.g., `{ email, password }` or `{ username, password }`).
+- Approval actions:
+  - POST `/purchases/requests/{id}/approve/`
+  - POST `/purchases/requests/{id}/reject/`
+  Services attempt PATCH/PUT fallbacks if POST is not allowed.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Troubleshooting
+- CORS / preflight errors: enable CORS on the backend (e.g., `django-cors-headers` and add `CorsMiddleware`) and allow your frontend origin.
+- 400 on token POST: confirm endpoint path and payload shape. Use curl to inspect server response.
+- Env var issues: restart dev server after changing `.env.local`.
 
-## Deploy on Vercel
+## Deployment
+- Deploy to Vercel or a static hosting service supporting Next.js.
+- Ensure `NEXT_PUBLIC_API_URL` is configured in the hosting environment.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Contributing
+- Fork, create a feature branch, run linters/tests, submit a PR with a clear description.
+- Keep UI accessible and add unit tests for core hooks/services when possible.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## License
+Add project license information here (e.g., MIT).

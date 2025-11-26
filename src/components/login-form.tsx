@@ -1,96 +1,106 @@
-"use client"
-import React, { useState } from "react"
-import { useRouter } from "next/navigation"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+"use client";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   Field,
   FieldDescription,
   FieldGroup,
   FieldLabel,
-} from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import api, { setAuthToken } from "@/lib/api"
-import { isAxiosError } from "axios"
-import toast from "react-hot-toast"
-import { Loader2 } from "lucide-react"
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import api, { setAuthToken } from "@/lib/api";
+import { isAxiosError } from "axios";
+import toast from "react-hot-toast";
+import { Loader2 } from "lucide-react";
 
+const DEMO_CREDENTIALS: Record<string, { email: string; password: string } | null> = {
+  finance: { email: "ruyangam15@gmail.com", password: "1234" },
+  staff: { email: "ruyangamerci30@gmail.com", password: "1234" },
+  approver1: { email: "igacode15@gmail.com", password: "1234" },
+  approver2: { email: "marieireneimanishimwe@gmail.com", password: "1234" },
+  clear: null,
+};
 
-export function LoginForm({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
-  const router = useRouter()
+const ROLE_REDIRECT: Record<string, string> = {
+  finance: "/dashboards/finance",
+  approver1: "/dashboards/approval",
+  approver2: "/dashboards/approval",
+  staff: "/dashboards/staff",
+};
 
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [loading, setLoading] = useState(false)
+export function LoginForm({ className, ...props }: React.ComponentProps<"div">) {
+  const router = useRouter();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  function applyDemo(role: string) {
+    const creds = DEMO_CREDENTIALS[role];
+    if (!creds) {
+      setEmail("");
+      setPassword("");
+      toast("Demo credentials cleared");
+      return;
+    }
+    setEmail(creds.email);
+    setPassword(creds.password);
+    toast.success(`Applied demo credentials: ${role}`);
+  }
+
+  function extractErrorMessage(err: unknown): string {
+    if (isAxiosError(err)) {
+      const data = err.response?.data;
+      if (typeof data === "string") return data;
+      if (data && typeof data === "object") {
+        return (data.detail ?? data.message) as string ?? JSON.stringify(data);
+      }
+      return err.message ?? "Request failed";
+    }
+    if (err instanceof Error) return err.message;
+    return "An unknown error occurred";
+  }
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    if (loading) return;
+    setLoading(true);
 
     try {
-      const res = await api.post("/auth/token/", { email, password })
+      const res = await api.post("/auth/token/", { email, password });
+      const token = res?.data?.access ?? res?.data?.refresh;
+      if (!token) throw new Error("Authentication token not provided by server");
 
+      // set token in client helper (persists to localStorage)
+      setAuthToken(token);
 
-      const token = res?.data?.access ?? res?.data?.refresh
-      if (!token) throw new Error("No token received from server")
-      setAuthToken(token)
-      localStorage.setItem("token", token);
+      const meRes = await api.get("/me/", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const role = String(meRes?.data?.role ?? "").toLowerCase();
 
-      const { data } = await api.get("/me/", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-
-      })
-
-      if (data.role == "finance") {
-        router.push("/dashboards/finance")
-        toast.success("Login successfuly.")
-      }else if (data.role == "approver1") {
-        router.push("/dashboards/approval")
-        toast.success("Login successfuly.")
-      }else if( data.role == "approver2"){
-        router.push("/dashboards/approval")
-        toast.success("Login successfuly.")
-      }else if(data.role == "staff"){
-        router.push("/dashboards/staff")
-        toast.success("Login successfuly.")
-      }else{
-        toast.success("Your role is not allowed")
+      const destination = ROLE_REDIRECT[role];
+      if (destination) {
+        toast.success("Login successful");
+        // replace prevents back-navigation to login
+        router.replace(destination);
+      } else {
+        toast("Login succeeded but your role is not permitted here");
       }
-
-
     } catch (err: unknown) {
-      // build a clear message string from the response
-      let message = "Login failed"
-
-      if (isAxiosError(err)) {
-        const data = err.response?.data
-        if (typeof data === "string") {
-          message = data
-        } else if (data && typeof data === "object") {
-          message = (data.detail ?? data.message) as string ?? JSON.stringify(data)
-        } else {
-          message = err.message ?? message
-        }
-      } else if (err instanceof Error) {
-        message = err.message
-      }
-
-      // show a user-friendly toast
-      toast.error(String(message))
+      const message = extractErrorMessage(err);
+      toast.error(message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
@@ -98,64 +108,115 @@ export function LoginForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
+          <CardTitle>Sign in</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account
+            Enter your credentials to access your MedLink dashboard.
           </CardDescription>
         </CardHeader>
+
         <CardContent>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} aria-describedby="login-desc">
             <FieldGroup>
               <Field>
-                <FieldLabel htmlFor="email">Email</FieldLabel>
+                <FieldLabel htmlFor="demo">Demo role</FieldLabel>
+                <div className="flex gap-2">
+                  <select
+                    id="demo"
+                    name="demo"
+                    aria-label="Choose demo role"
+                    className="rounded border px-3 py-2 flex-1"
+                    onChange={(e) => applyDemo(e.target.value)}
+                    defaultValue=""
+                  >
+                    <option value="">Choose demo role…</option>
+                    <option value="finance">Finance Role</option>
+                    <option value="staff">Staff Role</option>
+                    <option value="approver1">Approver Level 1 Role</option>
+                    <option value="approver2">Approver Level 2 Role</option>
+                    <option value="clear">Clear</option>
+                  </select>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setEmail("");
+                      setPassword("");
+                      toast("Fields cleared");
+                    }}
+                  >
+                    Clear
+                  </Button>
+                </div>
+              </Field>
+
+              <Field>
+                <FieldLabel htmlFor="email">Email address</FieldLabel>
                 <Input
                   id="email"
+                  name="email"
                   type="email"
-                  placeholder="m@example.com"
+                  placeholder="you@example.com"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
                 />
               </Field>
+
               <Field>
                 <div className="flex items-center">
                   <FieldLabel htmlFor="password">Password</FieldLabel>
                   <a
                     href="#"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline text-indigo-500"
+                    className="ml-auto text-sm underline-offset-4 hover:underline text-indigo-600"
                   >
-                    Forgot your password?
+                    Forgot password?
                   </a>
                 </div>
                 <Input
                   id="password"
+                  name="password"
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
                 />
               </Field>
+
               <Field>
-                <Button className="bg-indigo-500 text-xl hover:bg-indigo-700" type="submit" disabled={loading}>
-                  {loading ? (
-                    <span className="inline-flex items-center gap-2">
-                      <Loader2 className="animate-spin w-5 h-5" />
-                      Logging in…
-                    </span>
-                  ) : (
-                    "Login"
-                  )}
-                </Button>
-                <Button
-                  variant="outline"
-                  className="bg-amber-100"
-                  type="button"
-                  onClick={() => toast("Not implemented")}
-                >
-                  Login with Google
-                </Button>
-                <FieldDescription className="text-center text-blue-900">
-                  Don&apos;t have an account? <a href="/signup">Sign up</a>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button
+                    className="bg-indigo-600 text-white hover:bg-indigo-700 flex-1"
+                    type="submit"
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <span className="inline-flex items-center gap-2">
+                        <Loader2 className="animate-spin w-5 h-5" />
+                        Signing in…
+                      </span>
+                    ) : (
+                      "Sign in"
+                    )}
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="bg-amber-50"
+                    type="button"
+                    onClick={() => toast("Social login is not implemented")}
+                  >
+                    Sign in with Google
+                  </Button>
+                </div>
+
+                <FieldDescription id="login-desc" className="text-center text-sm text-slate-600 mt-3">
+                  Don&apos;t have an account?{" "}
+                  <a href="/signup" className="text-indigo-600 underline">
+                    Create one
+                  </a>
                 </FieldDescription>
               </Field>
             </FieldGroup>
@@ -163,5 +224,5 @@ export function LoginForm({
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
