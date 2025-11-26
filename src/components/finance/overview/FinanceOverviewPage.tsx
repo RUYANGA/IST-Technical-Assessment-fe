@@ -65,6 +65,8 @@ export default function FinanceOverviewPage() {
 
   // receipts count state (declare before useEffect so setReceiptsCount is available)
   const [receiptsCount, setReceiptsCount] = useState<number>(0)
+  // purchase orders count
+  const [ordersCount, setOrdersCount] = useState<number>(0)
 
   useEffect(() => {
     async function load() {
@@ -121,6 +123,24 @@ export default function FinanceOverviewPage() {
           approved: approvedRequests.length,
         })
         setReceiptsCount(totalReceipts)
+        // fetch purchase orders count (robust to different backend shapes)
+        try {
+          const resOrders = await api.get("/purchases/purchase-orders/")
+          const ordersData: unknown = resOrders.data ?? []
+          let count = 0
+          if (Array.isArray(ordersData)) count = ordersData.length
+          else if (ordersData && typeof ordersData === "object") {
+            const obj = ordersData as Record<string, unknown>
+            if (typeof obj.count === "number") count = obj.count
+            else if (Array.isArray(obj.results)) count = obj.results.length
+            else if (Array.isArray(obj.data)) count = obj.data.length
+            else if (typeof obj.total === "number") count = obj.total
+          }
+          setOrdersCount(count)
+        } catch (err) {
+          console.warn("orders fetch failed", err)
+          setOrdersCount(0)
+        }
       } catch (err) {
         setRequests([])
         setStats({ total: 0, approved: 0 })
@@ -209,7 +229,7 @@ export default function FinanceOverviewPage() {
         <DashboardCard
           icon={<FileText className="w-7 h-7 text-rose-500" />}
           label="Orders"
-          value="—"
+          value={loading ? "—" : ordersCount}
         />
         <DashboardCard
           icon={<DollarSign className="w-7 h-7 text-slate-600" />}
