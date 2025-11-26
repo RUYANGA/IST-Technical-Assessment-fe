@@ -1,3 +1,8 @@
+<!-- Quick links -->
+**Live (frontend):** https://assessment-advanced-fe.vercel.app  
+**Backend Swagger:** https://assessment-advanced-be-latest-1.onrender.com/swagger/  
+**Backend source:** https://github.com/RUYANGA/Assessment-Advanced-be
+
 # MedLink — Frontend (Next.js)
 
 Professional frontend for MedLink: a lightweight purchase-request, approval and finance management UI.  
@@ -6,6 +11,12 @@ Built with Next.js, React, TypeScript and Tailwind CSS. Integrates with a REST A
 ## Live demo
 The frontend is deployed and available at:
 - https://assessment-advanced-fe.vercel.app
+
+## Backend (API)
+- Swagger / OpenAPI documentation (backend):  
+  https://assessment-advanced-be-latest-1.onrender.com/swagger/
+- Backend repository (source):  
+  https://github.com/RUYANGA/Assessment-Advanced-be
 
 ## Features
 - Token-based authentication and session persistence.
@@ -67,7 +78,9 @@ pnpm start
 - Env var issues: restart dev server after changing `.env.local`.
 
 ## Deployment
-- Deploy to Vercel or a static hosting service supporting Next.js.
+- Deployed to Vercel: https://assessment-advanced-fe.vercel.app  
+- Backend Swagger: https://assessment-advanced-be-latest-1.onrender.com/swagger/  
+- Backend source: https://github.com/RUYANGA/Assessment-Advanced-be  
 - Ensure `NEXT_PUBLIC_API_URL` is configured in the hosting environment.
 
 ## Contributing
