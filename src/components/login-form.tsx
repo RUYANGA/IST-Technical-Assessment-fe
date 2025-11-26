@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/card";
 import {
   Field,
-  FieldDescription,
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
@@ -212,12 +211,12 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
                   </Button>
                 </div>
 
-                <FieldDescription id="login-desc" className="text-center text-sm text-slate-600 mt-3">
+                {/* <FieldDescription id="login-desc" className="text-center text-sm text-slate-600 mt-3">
                   Don&apos;t have an account?{" "}
                   <a href="/signup" className="text-indigo-600 underline">
                     Create one
                   </a>
-                </FieldDescription>
+                </FieldDescription> */}
               </Field>
             </FieldGroup>
           </form>
