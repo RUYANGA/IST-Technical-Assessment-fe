@@ -125,3 +125,37 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Responsive adjustments */
+html {
+  /* fluid base font size for better scaling across devices */
+  font-size: clamp(14px, 1rem + 0.2vw, 18px);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+:root {
+  /* container padding used throughout app (mobile-first) */
+  --app-container-padding: 1rem;
+}
+
+/* Utility container for consistent page width and responsive padding */
+.app-container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--app-container-padding);
+  padding-right: var(--app-container-padding);
+  max-width: 1200px; /* matches existing max-w-6xl */
+}
+
+/* Responsive headings */
+h1 { font-size: clamp(1.25rem, 1.1rem + 1.2vw, 2rem); }
+h2 { font-size: clamp(1.05rem, 0.95rem + 0.9vw, 1.25rem); }
+
+/* Make images and svg scale down on small screens */
+img, svg { max-width: 100%; height: auto; }
+
+/* Improve table responsiveness when not wrapped with Tailwind utilities */
+.table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
