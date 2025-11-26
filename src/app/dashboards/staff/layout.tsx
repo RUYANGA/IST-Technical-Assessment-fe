@@ -30,7 +30,7 @@ export default function DashboardLayout({
 
       <div className="flex-1 flex flex-col min-w-0">
         <Header title={title} onToggleSidebar={() => setSidebarOpen((s) => !s)} role={role} />
-        <main className="p-4 md:p-6 max-w-7xl w-full mx-auto">{children}</main>
+        <main className="p-4 md:p-6 max-w-7xl w-full mx-auto md:ml-72">{children}</main>
       </div>
     </div>
   )
