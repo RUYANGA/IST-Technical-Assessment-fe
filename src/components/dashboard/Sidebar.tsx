@@ -143,7 +143,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose, role 
             {displayName.split(" ").map((s) => s[0]).slice(0, 2).join("") || "ML"}
           </div>
           <div>
-            <div className="text-lg font-semibold text-slate-900">MedLink</div>
+            <div className="text-3xl font-semibold text-slate-900">MedLink</div>
           </div>
         </Link>
 
