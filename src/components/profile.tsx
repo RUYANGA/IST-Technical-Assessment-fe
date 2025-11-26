@@ -1,9 +1,10 @@
 "use client"
-import React from "react"
+import React, { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Mail, User, ArrowLeft, LogOut, Clipboard, Edit2, Key } from "lucide-react"
 import toast from "react-hot-toast"
+import api from "@/lib/api"
 
 type Role = "staff" | "finance" | "approver1" | "approver2"
 type CurrentUser = {
@@ -12,6 +13,7 @@ type CurrentUser = {
   first_name: string
   last_name: string
   role: Role
+  created_at?: string | null
 }
 
 // NOTE: this file uses a static `user` object for demo purposes.
@@ -22,9 +24,94 @@ const user: CurrentUser = {
   first_name: "Merci",
   last_name: "KAGABO",
   role: "finance",
+  created_at: "2023-04-15T10:30:00Z",
 }
 
 export default function ProfilePage() {
+  const [requestsCount, setRequestsCount] = useState<number | null>(null)
+  const [approvalsCount, setApprovalsCount] = useState<number | null>(null)
+  const [ordersCount, setOrdersCount] = useState<number | null>(null)
+  const [createdAt, setCreatedAt] = useState<string | null>(null)
+
+  useEffect(() => {
+    let mounted = true
+
+    async function loadCounts() {
+      try {
+        // Requests (user's own requests)
+        let reqCount = 0
+        try {
+          const res = await api.get("/purchases/requests/", { params: { mine: true } })
+          const data: unknown = res?.data ?? []
+          if (Array.isArray(data)) reqCount = data.length
+          else if (data && typeof data === "object") {
+            const obj = data as Record<string, unknown>
+            if (typeof obj.count === "number") reqCount = obj.count
+            else if (Array.isArray(obj.results)) reqCount = obj.results.length
+            else if (Array.isArray(obj.data)) reqCount = obj.data.length
+          }
+        } catch (err) {
+          console.warn("profile: fetch requests failed", err)
+        }
+
+        // Approvals (try /approvals/mine/ then fallback shapes)
+        let apprCount = 0
+        try {
+          const res = await api.get("/approvals/mine/")
+          const data: unknown = res?.data ?? []
+          if (Array.isArray(data)) apprCount = data.length
+          else if (data && typeof data === "object") {
+            const obj = data as Record<string, unknown>
+            if (typeof obj.count === "number") apprCount = obj.count
+            else if (Array.isArray(obj.results)) apprCount = obj.results.length
+            else if (Array.isArray(obj.data)) apprCount = obj.data.length
+          }
+        } catch (err) {
+          console.warn("profile: fetch approvals failed", err)
+        }
+
+        // Purchase orders
+        let poCount = 0
+        try {
+          const res = await api.get("/purchases/purchase-orders/")
+          const data: unknown = res?.data ?? []
+          if (Array.isArray(data)) poCount = data.length
+          else if (data && typeof data === "object") {
+            const obj = data as Record<string, unknown>
+            if (typeof obj.count === "number") poCount = obj.count
+            else if (Array.isArray(obj.results)) poCount = obj.results.length
+            else if (Array.isArray(obj.data)) poCount = obj.data.length
+          }
+        } catch (err) {
+          console.warn("profile: fetch purchase orders failed", err)
+        }
+
+        if (mounted) {
+          setRequestsCount(reqCount)
+          setApprovalsCount(apprCount)
+          setOrdersCount(poCount)
+        }
+        // fetch /me/ to obtain created_at (joined date)
+        try {
+          const meRes = await api.get("/me/")
+          const meData: unknown = meRes?.data
+          if (meData && typeof meData === "object") {
+            const obj = meData as Record<string, unknown>
+            if (obj.created_at && mounted) setCreatedAt(String(obj.created_at))
+          }
+        } catch (err) {
+          console.debug("profile: /me/ fetch failed", err)
+        }
+      } catch (err) {
+        console.error("profile: loadCounts failed", err)
+      }
+    }
+
+    void loadCounts()
+    return () => {
+      mounted = false
+    }
+  }, [])
   const router = useRouter()
   const displayName = `${user.first_name} ${user.last_name}`
   const initials = `${user.first_name[0]}${user.last_name[0]}`.toUpperCase()
@@ -63,11 +150,21 @@ export default function ProfilePage() {
   }
 
   function goEdit() {
-    router.push("/profile/edit")
+    //router.push("/profile/edit")
   }
 
   function changePassword() {
-    router.push("/profile/change-password")
+    //router.push("/profile/change-password")
+  }
+
+  function formatCreated(d?: string | null) {
+    if (!d) return "—"
+    try {
+      const dt = new Date(d)
+      return dt.toLocaleDateString(undefined, { year: "numeric", month: "short" })
+    } catch {
+      return String(d)
+    }
   }
 
   return (
@@ -92,7 +189,7 @@ export default function ProfilePage() {
                 <h1 className="text-2xl font-semibold text-slate-900">{displayName}</h1>
                 <div className="flex items-center gap-3 mt-1">
                   <span className="px-2 py-1 rounded bg-slate-100 text-xs font-medium text-slate-700">{user.role.toUpperCase()}</span>
-                  <span className="text-sm text-slate-500">Member since <strong className="text-slate-700">2023</strong></span>
+                  <span className="text-sm text-slate-500">Member since <strong className="text-slate-700">{formatCreated(createdAt ?? user.created_at ?? null)}</strong></span>
                 </div>
               </div>
             </div>
@@ -158,15 +255,15 @@ export default function ProfilePage() {
             <div className="mt-6 grid grid-cols-3 gap-3">
               <div className="p-3 bg-slate-50 rounded text-center">
                 <div className="text-xs text-slate-500">Requests</div>
-                <div className="text-lg font-semibold text-slate-900">—</div>
+                <div className="text-lg font-semibold text-slate-900">{requestsCount ?? "—"}</div>
               </div>
               <div className="p-3 bg-slate-50 rounded text-center">
                 <div className="text-xs text-slate-500">Approvals</div>
-                <div className="text-lg font-semibold text-slate-900">—</div>
+                <div className="text-lg font-semibold text-slate-900">{approvalsCount ?? "—"}</div>
               </div>
               <div className="p-3 bg-slate-50 rounded text-center">
                 <div className="text-xs text-slate-500">Orders</div>
-                <div className="text-lg font-semibold text-slate-900">—</div>
+                <div className="text-lg font-semibold text-slate-900">{ordersCount ?? "—"}</div>
               </div>
             </div>
           </section>

@@ -107,14 +107,15 @@ export default function PurchaseOrderList() {
         <div className="py-6 text-sm text-slate-500">No purchase orders found.</div>
       ) : (
         <div className="bg-white border rounded shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto table-responsive">
+            <table className="w-full text-sm min-w-[640px]">
             <thead>
               <tr className="text-left text-slate-500 border-b">
-                <th className="px-4 py-3">PO #</th>
+                <th className="px-4 py-3 hidden sm:table-cell">PO #</th>
                 <th className="px-4 py-3">Reference / Title</th>
-                <th className="px-4 py-3 w-28 text-center">Items</th>
+                <th className="px-4 py-3 w-28 text-center hidden sm:table-cell">Items</th>
                 <th className="px-4 py-3 w-36 text-right">Total</th>
-                <th className="px-4 py-3 w-40">Generated</th>
+                <th className="px-4 py-3 w-40 hidden md:table-cell">Generated</th>
                 <th className="px-4 py-3 w-28">Actions</th>
               </tr>
             </thead>
@@ -154,53 +155,55 @@ export default function PurchaseOrderList() {
 
                 const generated = data.created_at ?? o.generated_at ?? pr?.created_at;
 
-                return (
-                  <tr key={o.id} className="border-b last:border-b-0 hover:bg-slate-50">
-                    <td className="px-4 py-3 font-medium truncate">{poNum}</td>
+                  return (
+                    <tr key={o.id} className="border-b last:border-b-0 hover:bg-slate-50">
+                      <td className="px-4 py-3 font-medium truncate hidden sm:table-cell">{poNum}</td>
 
-                    <td className="px-4 py-3 text-slate-700 truncate" title={displayTitle}>
-                      <div className="font-medium">{displayTitle}</div>
-                      {pr ? (
-                        <div className="text-xs text-slate-500 mt-1">
-                          PR #{pr.id} — {pr.status ?? "—"}
+                      <td className="px-4 py-3 text-slate-700 truncate" title={displayTitle}>
+                        <div className="font-medium">{displayTitle}</div>
+                        {pr ? (
+                          <div className="text-xs text-slate-500 mt-1">
+                            PR #{pr.id} — {pr.status ?? "—"}
+                          </div>
+                        ) : null}
+
+                        {/* show small item summary on xs */}
+                        {itemsCount > 0 && (
+                          <div className="text-xs text-slate-500 mt-1">
+                            {itemsFromData.slice(0, 2).map((it, i) => (
+                              <span key={String(it.id ?? i)} className="inline-block mr-2">
+                                {it.name ?? `Item ${i + 1}`}
+                                {it.quantity ? ` ×${it.quantity}` : ""}
+                              </span>
+                            ))}
+                            {itemsCount > 2 && <span className="text-slate-400">+{itemsCount - 2} more</span>}
+                          </div>
+                        )}
+                      </td>
+
+                      <td className="px-4 py-3 text-center hidden sm:table-cell">
+                        <span className="inline-flex items-center justify-center px-2 py-1 text-xs rounded bg-slate-100 text-slate-700">
+                          {itemsCount}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-3 text-right font-medium">{formatAmount(totalValue)}</td>
+
+                      <td className="px-4 py-3 text-slate-500 hidden md:table-cell">{formatDate(generated)}</td>
+
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <Link href={`/dashboards/finance/order/${o.id}`} className="text-sm text-sky-600 hover:underline">
+                            View
+                          </Link>
                         </div>
-                      ) : null}
-
-                      {itemsCount > 0 && (
-                        <div className="text-xs text-slate-500 mt-1">
-                          {itemsFromData.slice(0, 3).map((it, i) => (
-                            <span key={String(it.id ?? i)} className="inline-block mr-2">
-                              {it.name ?? `Item ${i + 1}`}
-                              {it.quantity ? ` ×${it.quantity}` : ""}
-                            </span>
-                          ))}
-                          {itemsCount > 3 && <span className="text-slate-400">+{itemsCount - 3} more</span>}
-                        </div>
-                      )}
-                    </td>
-
-                    <td className="px-4 py-3 text-center">
-                      <span className="inline-flex items-center justify-center px-2 py-1 text-xs rounded bg-slate-100 text-slate-700">
-                        {itemsCount}
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-3 text-right font-medium">{formatAmount(totalValue)}</td>
-
-                    <td className="px-4 py-3 text-slate-500">{formatDate(generated)}</td>
-
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <Link href={`/dashboards/finance/order/${o.id}`} className="text-sm text-sky-600 hover:underline">
-                          View
-                        </Link>
-                      </div>
-                    </td>
-                  </tr>
-                );
+                      </td>
+                    </tr>
+                  )
               })}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </section>
