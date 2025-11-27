@@ -1,7 +1,10 @@
 <!-- Quick links -->
-[**Live (frontend):**](https://merciapi.lovewaylogistics.com/swagger/) https://assessment-advanced-fe.vercel.app  
-**Backend Swagger:** https://merciapi.lovewaylogistics.com/swagger/  
-**Backend source:** https://github.com/RUYANGA/Assessment-Advanced-be1
+
+### Quick links
+
+- **Live (frontend):** [https://assessment-advanced-fe.vercel.app](https://assessment-advanced-fe.vercel.app)
+- **Backend Swagger (API docs):** [https://merciapi.lovewaylogistics.com/swagger/](https://merciapi.lovewaylogistics.com/swagger/)
+- **Backend repository:** [RUYANGA/Assessment-Advanced-be1](https://github.com/RUYANGA/Assessment-Advanced-be1)
 
 # MedLink — Frontend (Next.js)
 
