@@ -20,17 +20,17 @@ export function DeleteButton({
   return (
     <ConfirmDialog
       trigger={
-        <span
-          role="button"
-          tabIndex={0}
-          className={`px-3 py-2 text-sm text-rose-600 hover:bg-slate-50 rounded ${disabled || localDisabled ? "opacity-50 pointer-events-none" : "cursor-pointer"}`}
+        <button
+          type="button"
+          disabled={disabled || localDisabled}
+          className={`px-3 py-2 text-sm text-rose-600 hover:bg-slate-50 rounded ${disabled || localDisabled ? "opacity-50" : ""}`}
           aria-disabled={disabled || localDisabled}
         >
           <span className="inline-flex items-center gap-2">
             <Trash2 className="w-4 h-4" />
             <span>{buttonLabel}</span>
           </span>
-        </span>
+        </button>
       }
       icon={<Trash2 className="w-6 h-6 text-rose-600" />}
       title={title ?? "Delete item"}
