@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MedLink — Frontend",
+  title: "MedLink",
   description:
     "Professional frontend for MedLink: purchase-request, approval and finance management UI.",
   icons: {
