@@ -1,6 +1,7 @@
 "use client"
 import React, { useEffect } from "react"
 import { usePathname, useRouter } from "next/navigation"
+import { setAuthToken } from "@/lib/api"
 
 type Props = { children: React.ReactNode }
 
@@ -24,10 +25,14 @@ export default function AuthGuard({ children }: Props) {
 
     // token stored in localStorage elsewhere in the app
     const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
-
     if (!token && !isPublic) {
       // push to login when unauthenticated
       router.replace("/login")
+    }
+
+    // Ensure API client has the latest token (in case api was initialized earlier)
+    if (token) {
+      setAuthToken(token)
     }
   }, [pathname, router])
 
