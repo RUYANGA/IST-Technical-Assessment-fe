@@ -139,11 +139,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose, role 
     >
       <div className="px-6 py-4 border-b flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3" onClick={closeOnNavigate}>
-          <div className="w-10 h-10 rounded-md bg-sky-600 flex items-center justify-center text-white font-bold">
+          <div className="w-9 h-9 rounded-md bg-sky-600 flex items-center justify-center text-white font-semibold text-sm">
             {displayName.split(" ").map((s) => s[0]).slice(0, 2).join("") || "ML"}
           </div>
           <div>
-            <div className="text-3xl font-semibold text-slate-900">MedLink</div>
+            <div className="text-2xl font-semibold text-slate-900">MedLink</div>
           </div>
         </Link>
 
