@@ -23,6 +23,8 @@ type FinanceTableProps = {
   PopupMenu: React.FC<{ anchor: DOMRect | null; children: React.ReactNode; onClose: () => void }>
 }
 
+export default FinanceTable
+
 export function FinanceTable({
   requests,
   openMenuId,
@@ -32,12 +34,17 @@ export function FinanceTable({
   PopupMenu,
 }: FinanceTableProps) {
   const [deletingId, setDeletingId] = React.useState<number | string | null>(null)
+  const [localRequests, setLocalRequests] = React.useState<FinanceRequest[]>(requests ?? [])
+
+  React.useEffect(() => {
+    setLocalRequests(requests ?? [])
+  }, [requests])
 
   return (
     <>
       {/* Mobile: stacked cards */}
       <div className="md:hidden space-y-3">
-        {requests.map((r) => (
+        {localRequests.map((r) => (
           <div key={r.id} className="bg-white border rounded-lg p-4">
             <div className="flex items-start justify-between">
               <div className="min-w-0">
@@ -74,7 +81,7 @@ export function FinanceTable({
         </tr>
       </thead>
       <tbody>
-        {requests.map((r) => (
+        {localRequests.map((r) => (
           <tr key={r.id} className="border-b last:border-b-0 hover:bg-slate-50 transition-colors">
             <td className="py-3 px-4 flex items-start gap-3 min-w-0">
               <div className="shrink-0 rounded-full bg-slate-100 w-9 h-9 flex items-center justify-center">
@@ -170,12 +177,13 @@ export function FinanceTable({
                               const headers: Record<string, string> = {}
                               if (token) headers.Authorization = `Bearer ${token}`
 
-                              const res = await api.delete(`/purchases/requests/${r.id}/`, { headers })
-                              console.debug("DELETE response", res?.status, res?.data)
-                              toast.success("Request deleted", { id: toastId })
-                              setOpenMenuId(null)
-                              setMenuAnchor(null)
-                              window.location.reload()
+                                const res = await api.delete(`/purchases/requests/${r.id}/`, { headers })
+                                console.debug("DELETE response", res?.status, res?.data)
+                                // Optimistically remove the request from the local list so UI updates without a full reload
+                                setLocalRequests((prev) => prev.filter((it) => String(it.id) !== String(r.id)))
+                                toast.success("Request deleted", { id: toastId })
+                                setOpenMenuId(null)
+                                setMenuAnchor(null)
                             } catch (err: unknown) {
                               console.error("delete request error", err)
                               const anyErr = err as { response?: { status?: number; data?: unknown }; message?: string }
