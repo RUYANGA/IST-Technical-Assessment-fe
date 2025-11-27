@@ -65,9 +65,28 @@ export function createStaffService(client: AxiosInstance = api) {
     async fetchStats(token?: string): Promise<StaffStats | null> {
       try {
         const headers = token ? { Authorization: `Bearer ${token}` } : {}
-        const res = await client.get<StaffStats>("/purchases/requests/stats/?mine=true", { headers })
-        return res.data ?? null
-      } catch {
+        // prefer dedicated stats endpoint when available
+        try {
+          const res = await client.get<StaffStats>("/purchases/requests/stats/?mine=true", { headers })
+          return res.data ?? null
+        } catch (err: any) {
+          // if the backend doesn't expose a stats endpoint, fall back to listing and compute locally
+          if (err?.response?.status === 404) {
+            console.debug("stats endpoint not found, falling back to list and computing stats")
+            const listRes = await client.get<RequestItem[]>("/purchases/requests/?mine=true", { headers })
+            const items = listRes.data ?? []
+            const stats: StaffStats = {
+              total: items.length,
+              pending: items.filter((i) => String(i.status ?? "").toUpperCase() === "PENDING").length,
+              approved: items.filter((i) => String(i.status ?? "").toUpperCase() === "APPROVED").length,
+              rejected: items.filter((i) => String(i.status ?? "").toUpperCase() === "REJECTED").length,
+              total_amount: items.reduce((sum, it) => sum + Number(it.total_amount ?? it.amount ?? 0), 0),
+            }
+            return stats
+          }
+          throw err
+        }
+      } catch (e) {
         return null
       }
     },
