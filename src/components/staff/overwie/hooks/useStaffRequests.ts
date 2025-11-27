@@ -1,5 +1,6 @@
 "use client"
 import { useCallback, useEffect, useRef, useState } from "react"
+import toast from "react-hot-toast"
 import createStaffService, { RequestItem, StaffStats } from "../services/staffService"
 
 type UseStaffOverviewReturn = {
@@ -108,6 +109,35 @@ export function useStaffOverview(service = createStaffService()) : UseStaffOverv
   const deleteRequest = useCallback(async (id: number | string) => {
     try {
       const token = typeof window !== "undefined" ? localStorage.getItem("token") ?? undefined : undefined
+
+      // basic token validation: if missing or expired, prompt re-login
+      if (!token) {
+        toast.error("You must be signed in to delete requests")
+        if (typeof window !== "undefined") window.location.href = "/login"
+        return false
+      }
+
+      // decode JWT payload and check exp (if possible)
+      try {
+        const parts = token.split('.')
+        if (parts.length === 3) {
+          const payload = JSON.parse(atob(parts[1]))
+          const exp = payload?.exp
+          if (typeof exp === 'number') {
+            const now = Math.floor(Date.now() / 1000)
+            if (now >= exp) {
+              // token expired
+              toast.error('Session expired, please sign in again')
+              localStorage.removeItem('token')
+              if (typeof window !== "undefined") window.location.href = "/login"
+              return false
+            }
+          }
+        }
+      } catch (e) {
+        // ignore decode errors and proceed (server will reject if token invalid)
+      }
+
       await service.deleteRequest(id, token)
       // optimistic update: remove from list and adjust stats
       setRecent((prev) => prev.filter((r) => r.id !== id))
