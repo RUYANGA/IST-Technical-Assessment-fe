@@ -1,6 +1,7 @@
 "use client"
 
 import React from "react"
+import { createPortal } from "react-dom"
 import Link from "next/link"
 import {
   MoreHorizontal,
@@ -38,6 +39,7 @@ export function FinanceTable({
 }: FinanceTableProps) {
   const [deletingId, setDeletingId] = React.useState<number | string | null>(null)
   const [localRequests, setLocalRequests] = React.useState<FinanceRequest[]>(requests ?? [])
+  const [confirmOpenId, setConfirmOpenId] = React.useState<number | string | null>(null)
 
   React.useEffect(() => {
     setLocalRequests(requests ?? [])
@@ -95,6 +97,30 @@ export function FinanceTable({
       setDeletingId(null)
       toast.dismiss(toastId)
     }
+  }
+
+  // Inline simple modal confirm (self-contained) to avoid external dialog issues
+  function ConfirmModal({ id, title, description, onConfirm, onCancel }: { id: number | string; title?: string; description?: string; onConfirm: () => void; onCancel: () => void }) {
+    if (typeof document === "undefined") return null
+    return createPortal(
+      <div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" onClick={onCancel}>
+        <div className="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden" onClick={(e) => e.stopPropagation()}>
+          <div className="p-6">
+            <div className="flex items-start gap-4">
+              <div className="min-w-0">
+                <h3 className="text-lg font-semibold text-slate-900">{title ?? "Confirm delete"}</h3>
+                {description ? <p className="mt-2 text-sm text-slate-600">{description}</p> : null}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center justify-end gap-3 px-6 py-4 border-t bg-slate-50">
+            <button onClick={onCancel} className="px-4 py-2 rounded-md border bg-white text-sm text-slate-700 hover:bg-slate-100">Cancel</button>
+            <button onClick={onConfirm} className="px-4 py-2 rounded-md bg-rose-600 text-white text-sm hover:bg-rose-700">Delete</button>
+          </div>
+        </div>
+      </div>,
+      document.body
+    )
   }
 
   return (
@@ -231,29 +257,32 @@ export function FinanceTable({
 
                       {/* only allow delete for approved requests (finance can delete approved) */}
                       {String(r.status ?? "").toUpperCase() === "APPROVED" && (
-                        <ConfirmDialog
-                          trigger={
-                            <button
-                              type="button"
-                              disabled={deletingId === r.id}
-                              className={`px-3 py-2 text-sm text-rose-600 hover:bg-slate-50 rounded ${deletingId === r.id ? "opacity-50" : ""}`}
-                              aria-disabled={deletingId === r.id}
-                            >
-                              <span className="inline-flex items-center gap-2">
-                                <Trash2 className="w-4 h-4" />
-                                <span>Delete</span>
-                              </span>
-                            </button>
-                          }
-                          icon={<Trash2 className="w-6 h-6 text-rose-600" />}
-                          title={`Are you sure you want to delete this request?`}
-                          description="This will permanently remove the approved request and its related data. This action cannot be undone."
-                          confirmText="Delete"
-                          cancelText="Cancel"
-                          onConfirm={async () => {
-                            await performDelete(r.id)
-                          }}
-                        />
+                        <>
+                          <button
+                            type="button"
+                            disabled={deletingId === r.id}
+                            onClick={() => setConfirmOpenId(r.id)}
+                            className={`px-3 py-2 text-sm text-rose-600 hover:bg-slate-50 rounded ${deletingId === r.id ? "opacity-50" : ""}`}
+                            aria-disabled={deletingId === r.id}
+                          >
+                            <span className="inline-flex items-center gap-2">
+                              <Trash2 className="w-4 h-4" />
+                              <span>Delete</span>
+                            </span>
+                          </button>
+                          {confirmOpenId === r.id && (
+                            <ConfirmModal
+                              id={r.id}
+                              title={`Are you sure you want to delete this request?`}
+                              description="This will permanently remove the approved request and its related data. This action cannot be undone."
+                              onCancel={() => setConfirmOpenId(null)}
+                              onConfirm={async () => {
+                                setConfirmOpenId(null)
+                                await performDelete(r.id)
+                              }}
+                            />
+                          )}
+                        </>
                       )}
                      
                       <Link
