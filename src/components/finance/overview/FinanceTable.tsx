@@ -273,7 +273,7 @@ export function FinanceTable({
                           {confirmOpenId === r.id && (
                             <ConfirmModal
                               id={r.id}
-                              title={`Are you sure you want to delete this request?`}
+                              title={`Are you sure you want to delete this?`}
                               description="This will permanently remove the approved request and its related data. This action cannot be undone."
                               onCancel={() => setConfirmOpenId(null)}
                               onConfirm={async () => {
