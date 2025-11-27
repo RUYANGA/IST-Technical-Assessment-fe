@@ -114,8 +114,23 @@ export function FinanceTable({
             </div>
           </div>
           <div className="flex items-center justify-end gap-3 px-6 py-4 border-t bg-slate-50">
-            <button onClick={onCancel} className="px-4 py-2 rounded-md border bg-white text-sm text-slate-700 hover:bg-slate-100">Cancel</button>
-            <button onClick={onConfirm} className="px-4 py-2 rounded-md bg-rose-600 text-white text-sm hover:bg-rose-700">Delete</button>
+            <button onClick={onCancel} type="button" className="px-4 py-2 rounded-md border bg-white text-sm text-slate-700 hover:bg-slate-100">Cancel</button>
+            <button
+              onClick={async (e) => {
+                e.stopPropagation()
+                try {
+                  console.debug("ConfirmModal: delete click", { id })
+                  // ensure any promise returned by onConfirm is handled
+                  await Promise.resolve(onConfirm())
+                } catch (err) {
+                  console.error("ConfirmModal: onConfirm error", err)
+                }
+              }}
+              type="button"
+              className="px-4 py-2 rounded-md bg-rose-600 text-white text-sm hover:bg-rose-700"
+            >
+              Delete
+            </button>
           </div>
         </div>
       </div>,
@@ -261,7 +276,10 @@ export function FinanceTable({
                           <button
                             type="button"
                             disabled={deletingId === r.id}
-                            onClick={() => setConfirmOpenId(r.id)}
+                            onClick={() => {
+                              console.debug("FinanceTable: open confirm for id", r.id)
+                              setConfirmOpenId(r.id)
+                            }}
                             className={`px-3 py-2 text-sm text-rose-600 hover:bg-slate-50 rounded ${deletingId === r.id ? "opacity-50" : ""}`}
                             aria-disabled={deletingId === r.id}
                           >
