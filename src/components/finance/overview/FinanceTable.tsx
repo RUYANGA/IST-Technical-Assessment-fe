@@ -10,11 +10,12 @@ import {
   FolderOpen,
   CheckCircle,
   FileText,
+  Trash2,
 } from "lucide-react"
 import { FinanceRequest,formatFrwCompact} from "./FinanceOverviewPage"
 import toast from "react-hot-toast"
 import api from "@/lib/api"
-import { DeleteButton } from "@/components/deleteDialoge"
+// using native confirm for deletion by user request
 
 type FinanceTableProps = {
   requests: FinanceRequest[]
@@ -230,12 +231,26 @@ export function FinanceTable({
 
                       {/* only allow delete for approved requests (finance can delete approved) */}
                       {String(r.status ?? "").toUpperCase() === "APPROVED" && (
-                        <DeleteButton
+                        <button
+                          type="button"
                           disabled={deletingId === r.id}
-                          title={`Are you sure you want to delete this request?`}
-                          description="This will permanently remove the approved request and its related data. This action cannot be undone."
-                          handleDelete={async () => performDelete(r.id)}
-                        />
+                          onClick={async () => {
+                            try {
+                              const confirmed = typeof window !== "undefined" ? window.confirm("Are you sure you want to delete this request? This action cannot be undone.") : false
+                              if (!confirmed) return
+                              await performDelete(r.id)
+                            } catch (e) {
+                              console.error("confirm delete handler error", e)
+                            }
+                          }}
+                          className={`px-3 py-2 text-sm text-rose-600 hover:bg-slate-50 rounded ${deletingId === r.id ? "opacity-50" : ""}`}
+                          aria-disabled={deletingId === r.id}
+                        >
+                          <span className="inline-flex items-center gap-2">
+                            <Trash2 className="w-4 h-4" />
+                            <span>Delete</span>
+                          </span>
+                        </button>
                       )}
                      
                       <Link
