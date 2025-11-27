@@ -107,7 +107,7 @@ export default function Header({
 
   return (
     <header className="sticky top-0 z-20 bg-white border-b transition-all md:ml-64">
-      <div className="flex items-center justify-between w-full max-w-5xl mx-auto px-3 md:px-4 py-2">
+      <div className="flex items-center justify-between w-full max-w-5xl mx-auto px-2 md:px-3 py-2">
         <div className="flex-1 min-w-0 flex items-center gap-2">
         <button onClick={onToggleSidebar} className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-slate-700 hover:bg-slate-100" aria-label="Toggle sidebar">
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -136,7 +136,7 @@ export default function Header({
         </div>
         </div>
 
-        <div className="flex items-center gap-3 ml-3">
+        <div className="flex items-center gap-3 ml-2">
         <div className="hidden sm:flex flex-col text-right">
           <span className="text-sm font-medium">{displayName}</span>
           <small className="text-xs text-slate-500">{displayrole}</small>
