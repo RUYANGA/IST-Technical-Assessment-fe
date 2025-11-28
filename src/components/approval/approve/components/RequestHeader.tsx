@@ -31,7 +31,9 @@ export default function RequestHeader({ request }: { request: RequestItem | null
       const ok = await svc.updateRequest(id as number | string, { status })
       if (ok) {
         toast.success(status === "APPROVED" ? "Request approved" : "Request rejected")
-        router.push("/dashboards/approval")
+        // navigate back to approval overview and include the approved id so overview can show it immediately
+        const q = typeof id === "string" || typeof id === "number" ? `?justApproved=${encodeURIComponent(String(id))}` : ""
+        router.push(`/dashboards/approval/${q}`)
       } else {
         toast.error("Action failed")
       }

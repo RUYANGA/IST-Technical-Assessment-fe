@@ -1,7 +1,7 @@
 "use client"
 import React, { useRef, useMemo, useEffect, useState, useCallback } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import createStaffService from "./services/staffService"
 import type { RequestItem, ApprovalEntry, StaffStats } from "./services/staffService"
 import {
@@ -26,6 +26,8 @@ export default function ApprovalOverviewPage() {
   const [stats, setStats] = useState<StaffStats | null>(null)
   // memoize service so it doesn't recreate every render (helps with hook deps)
   const svc = useMemo(() => createStaffService(), [])
+
+  const searchParams = useSearchParams()
 
   // track mounted state so load() can avoid setting state on unmounted component
   const mountedRef = useRef(true)
@@ -114,6 +116,38 @@ export default function ApprovalOverviewPage() {
       mountedRef.current = false
     }
   }, [load])
+
+  // If we were redirected back to this page with ?justApproved=<id>, fetch that request
+  // and ensure it appears in `mine` so the approver sees what they just approved.
+  useEffect(() => {
+    const justApproved = searchParams?.get?.("justApproved")
+    if (!justApproved) return
+    let cancelled = false
+
+    ;(async () => {
+      try {
+        const req = await svc.fetchRequest(justApproved)
+        if (!req || cancelled) return
+        setMine((prev) => {
+          if (prev.some((p) => String(p.id) === String(req.id))) return prev
+          return [req, ...prev]
+        })
+
+        // remove query param so it doesn't re-run
+        if (typeof window !== "undefined") {
+          const url = new URL(window.location.href)
+          url.searchParams.delete("justApproved")
+          window.history.replaceState({}, "", url.toString())
+        }
+      } catch (err) {
+        console.error("failed to fetch justApproved request", err)
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [searchParams, svc])
 
   const tableRef = useRef<HTMLDivElement | null>(null)
   const router = useRouter()
