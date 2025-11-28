@@ -71,9 +71,14 @@ export default function ApprovalOverviewPage() {
 
       if (Array.isArray(recentApprovals)) {
         for (const e of recentApprovals as ApprovalEntry[]) {
-          const entry = (e.purchase_request ?? e.request ?? e) as unknown
+          const approvalEntry = e as ApprovalEntry
+          const entry = (approvalEntry.purchase_request ?? approvalEntry.request ?? approvalEntry) as unknown
           const n = normalize(entry)
-          if (n) mineList.push(n)
+          if (n) {
+            // keep original approval entry so we can know whether *this approver* approved/rejected
+            ;(n as any)._approval = approvalEntry
+            mineList.push(n)
+          }
         }
       } else if (recentApprovals && typeof recentApprovals === "object") {
         const obj = recentApprovals as Record<string, unknown>
@@ -82,8 +87,12 @@ export default function ApprovalOverviewPage() {
           const val = obj[k]
           if (Array.isArray(val)) {
             for (const entry of val as ApprovalEntry[]) {
-              const n = normalize(entry)
-              if (n) mineList.push(n)
+              const approvalEntry = entry as ApprovalEntry
+              const n = normalize((approvalEntry.purchase_request ?? approvalEntry.request ?? approvalEntry) as unknown)
+              if (n) {
+                ;(n as any)._approval = approvalEntry
+                mineList.push(n)
+              }
             }
           }
         }
@@ -158,7 +167,13 @@ export default function ApprovalOverviewPage() {
 
   // counts derived from fetched lists
   const myApprovedCount = useMemo(() => {
-    return Array.isArray(mine) ? mine.filter((x) => String(x?.status ?? "").toUpperCase() === "APPROVED").length : 0
+    return Array.isArray(mine)
+      ? mine.filter((x) => {
+          const statusApproved = String(x?.status ?? "").toUpperCase() === "APPROVED"
+          const approvedByMe = !!((x as any)?._approval && ((x as any)?._approval).approved_at)
+          return statusApproved || approvedByMe
+        }).length
+      : 0
   }, [mine])
 
   console.log(mine)
@@ -169,7 +184,13 @@ export default function ApprovalOverviewPage() {
 
   // approvals/rejections by current approver
   const mineApproved = useMemo(() => {
-    return Array.isArray(mine) ? mine.filter((x) => String(x?.status ?? "").toUpperCase() === "APPROVED") : []
+    return Array.isArray(mine)
+      ? mine.filter((x) => {
+          const statusApproved = String(x?.status ?? "").toUpperCase() === "APPROVED"
+          const approvedByMe = !!((x as any)?._approval && ((x as any)?._approval).approved_at)
+          return statusApproved || approvedByMe
+        })
+      : []
   }, [mine])
 
   const mineRejected = useMemo(() => {
