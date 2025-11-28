@@ -1,6 +1,7 @@
 "use client"
 import Link from "next/link"
 import React, { useState } from "react"
+import { Loader2 } from "lucide-react"
 import { useRouter, useParams } from "next/navigation"
 import toast from "react-hot-toast"
 import createStaffService from "@/components/approval/overview/services/staffService"
@@ -12,6 +13,7 @@ export default function RequestHeader({ request }: { request: RequestItem | null
   // typed view of params to avoid `any`
   const paramValues = params as Record<string, string | undefined>
   const [loading, setLoading] = useState(false)
+  const [action, setAction] = useState<"APPROVED" | "REJECTED" | null>(null)
 
   // hide action buttons when request is already approved
   const isApproved = String(request?.status ?? "").toUpperCase() === "APPROVED"
@@ -25,6 +27,7 @@ export default function RequestHeader({ request }: { request: RequestItem | null
       return
     }
 
+    setAction(status)
     setLoading(true)
     try {
       const svc = createStaffService()
@@ -42,6 +45,7 @@ export default function RequestHeader({ request }: { request: RequestItem | null
       toast.error("Action failed")
     } finally {
       setLoading(false)
+      setAction(null)
     }
   }
 
@@ -63,9 +67,16 @@ export default function RequestHeader({ request }: { request: RequestItem | null
                 handleUpdate("REJECTED")
               }}
               disabled={loading}
-              className="text-sm px-3 py-2 rounded bg-rose-500 text-white hover:bg-rose-600 disabled:opacity-60"
+              className="text-sm px-3 py-2 rounded bg-rose-500 text-white hover:bg-rose-600 disabled:opacity-60 inline-flex items-center gap-2"
             >
-              Reject
+              {loading && action === "REJECTED" ? (
+                <span className="inline-flex items-center gap-2">
+                  <Loader2 className="animate-spin w-4 h-4" />
+                  Processing...
+                </span>
+              ) : (
+                "Reject"
+              )}
             </button>
 
             <button
@@ -75,9 +86,16 @@ export default function RequestHeader({ request }: { request: RequestItem | null
                 handleUpdate("APPROVED")
               }}
               disabled={loading}
-              className="text-sm px-3 py-2 rounded bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60"
+              className="text-sm px-3 py-2 rounded bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60 inline-flex items-center gap-2"
             >
-              Approve
+              {loading && action === "APPROVED" ? (
+                <span className="inline-flex items-center gap-2">
+                  <Loader2 className="animate-spin w-4 h-4" />
+                  Processing...
+                </span>
+              ) : (
+                "Approve"
+              )}
             </button>
           </>
         ) : null}

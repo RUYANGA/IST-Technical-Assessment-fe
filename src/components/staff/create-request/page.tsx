@@ -78,7 +78,7 @@ export default function CreateRequestPage() {
                     <div className="flex items-center gap-3">
                       <div className="text-xs text-slate-500">Total</div>
                       <div className="text-sm font-medium flex items-center gap-1">
-                        <DollarSign className="w-4 h-4 text-slate-500" /> <span>{totalAmount}</span>
+                        <DollarSign className="w-4 h-4 text-slate-500" /> <span>{totalAmount}Frw</span>
                       </div>
 
                       <button
