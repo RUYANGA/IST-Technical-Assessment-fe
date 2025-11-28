@@ -33,6 +33,18 @@ export async function submitReceipt(
       }
     )
     toast.success('Receipt submitted successfully!')
+    // redirect to the related request view so user can see uploaded receipt
+    try {
+      if (typeof window !== 'undefined') {
+        const dest = `/dashboards/staff/requests/${requestId}`
+        // use location replace to avoid back-navigation to the submission form
+        window.location.href = dest
+      }
+    } catch (e) {
+      // ignore navigation errors
+      console.error('redirect after receipt submit failed', e)
+    }
+
     return res.data
   } catch (error) {
     // Use unknown type and type guard
