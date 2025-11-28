@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 import toast from "react-hot-toast";
@@ -183,10 +184,12 @@ export default function ViewSingleOrder({ id }: { id?: number | string }) {
         <button
           onClick={handleDelete}
           disabled={loading}
-          className="inline-flex items-center px-3 py-1.5 border rounded text-sm gap-2 bg-rose-50 text-rose-700 hover:bg-rose-100 disabled:opacity-50"
+          aria-label="Delete purchase order"
+          className="inline-flex items-center px-3 py-1.5 border border-rose-200 rounded text-sm gap-2 bg-white text-rose-600 hover:bg-rose-50 focus:outline-none focus:ring-2 focus:ring-rose-200 disabled:opacity-50"
           title="Delete purchase order"
         >
-          Delete
+          <Trash2 className="w-4 h-4" />
+          <span className="hidden sm:inline">Delete</span>
         </button>
       </div>
 
@@ -205,16 +208,6 @@ export default function ViewSingleOrder({ id }: { id?: number | string }) {
               <div className="font-medium">{approverName}</div>
             </>
           )}
-          <div className="mt-4 flex items-center justify-end gap-2">
-            <button
-              onClick={handleDelete}
-              disabled={loading}
-              className="inline-flex items-center px-3 py-1.5 border rounded text-sm gap-2 bg-rose-50 text-rose-700 hover:bg-rose-100 disabled:opacity-50"
-              title="Delete purchase order"
-            >
-              Delete
-            </button>
-          </div>
         </div>
       </header>
 
