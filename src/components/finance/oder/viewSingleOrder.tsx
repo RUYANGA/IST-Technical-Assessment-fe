@@ -2,7 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import api from "@/lib/api";
+import toast from "react-hot-toast";
 
 type PurchaseOrderItem = {
   id?: number | string;
@@ -56,6 +58,7 @@ export default function ViewSingleOrder({ id }: { id?: number | string }) {
   const [loading, setLoading] = useState<boolean>(true);
   const [order, setOrder] = useState<PurchaseOrderRaw | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   // try to derive id from pathname if not passed
   function resolveIdFromPath(): string | undefined {
@@ -151,6 +154,29 @@ export default function ViewSingleOrder({ id }: { id?: number | string }) {
     ? (order.approver.full_name ?? `${order.approver.first_name ?? ""} ${order.approver.last_name ?? ""}`.trim())
     : null;
 
+  async function handleDelete() {
+    if (!order) return toast.error("No purchase order loaded")
+    const resolvedId = String(order.id ?? resolveIdFromPath() ?? "")
+    if (!resolvedId) return toast.error("Unable to determine purchase order id")
+
+    // confirm
+    if (!confirm("Delete this purchase order? This action cannot be undone.")) return
+
+    try {
+      setLoading(true)
+      await api.delete(`/purchases/purchase-orders/${resolvedId}/`)
+      toast.success("Purchase order deleted")
+      // navigate back to purchase orders list
+      router.push("/dashboards/finance/order")
+    } catch (err) {
+      console.error("Failed to delete purchase order", err)
+      toast.error("Failed to delete purchase order")
+      setError("Failed to delete purchase order")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <section className="max-w-4xl mx-auto p-6 bg-white rounded shadow-sm">
       <header className="mb-4 flex items-start justify-between gap-4">
@@ -168,6 +194,16 @@ export default function ViewSingleOrder({ id }: { id?: number | string }) {
               <div className="font-medium">{approverName}</div>
             </>
           )}
+          <div className="mt-4 flex items-center justify-end gap-2">
+            <button
+              onClick={handleDelete}
+              disabled={loading}
+              className="inline-flex items-center px-3 py-1.5 border rounded text-sm gap-2 bg-rose-50 text-rose-700 hover:bg-rose-100 disabled:opacity-50"
+              title="Delete purchase order"
+            >
+              Delete
+            </button>
+          </div>
         </div>
       </header>
 
